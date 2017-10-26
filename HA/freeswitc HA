@@ -1,0 +1,136 @@
+0. modify freeswitch configure
+
+  vi ./vars_sip.xml
+    <!-- Floating IP Params-->
+    <X-PRE-PROCESS cmd="set" data="pbx_floating_ip=192.168.135.199"/>
+    <X-PRE-PROCESS cmd="set" data="bind_server_ip=$${pbx_floating_ip}"/>
+
+	vi sofia.conf.xml
+    <param name="odbc-dsn" value="$${pbxdb_dsn}"/>
+    <param name="track-calls" value="true"/>
+    <param name="rtp-ip" value="$${pbx_floating_ip}"/>
+    <param name="sip-ip" value="$${pbx_floating_ip}"/>
+    <param name="presence-hosts" value="$${pbx_floating_ip}"/>
+    <param name="ext-rtp-ip" value="$${pbx_floating_ip}"/>
+    <param name="ext-sip-ip" value="$${pbx_floating_ip}"/>
+
+  vi switch.conf.xml
+    <param name="core-recovery-db-dsn" value="$${pbxdb_dsn}"/>
+    <param name="switchname" value="Polylink IPPBX"/>
+
+  vi internal-eth0.xml
+    <param name="track-calls" value="true"/>
+    <param name="rtp-ip" value="$${pbx_floating_ip}"/>
+    <param name="sip-ip" value="$${pbx_floating_ip}"/>
+    
+  vi external-eth0.xml 
+    <param name="track-calls" value="true"/>
+    <param name="rtp-ip" value="$${pbx_floating_ip}"/>
+    <param name="sip-ip" value="$${pbx_floating_ip}"/>
+    
+1. modify hostname
+vi /etc/sysconfig/network
+NETWORKING=yes
+HOSTNAME=IX-A
+
+2. map hostname and IP
+vi /etc/hosts
+192.168.135.202 IX-A
+192.168.135.192 IX-B
+192.168.135.191 IX-DB
+
+3. disable selinux and iptables
+/bin/sed -i -e s,'SELINUX=enforcing','SELINUX=disabled', /etc/selinux/config
+service iptables stop
+chkconfig iptables off
+service ip6tables stop
+chkconfig ip6tables off
+
+4. configure network
+echo 'net.ipv4.ip_nonlocal_bind=1' >> /etc/sysctl.conf
+echo 'net.ipv6.conf.default.disable_ipv6=1' >> /etc/sysctl.conf
+echo 'net.ipv6.conf.all.disable_ipv6=1' >> /etc/sysctl.conf
+sysctl -p
+
+5. configure DNS and NTP 
+vi /etc/sysconfig/network-scripts/ifcfg-eth0
+service ntpd start
+chkconfig --add ntpd
+chkconfig ntpd on
+
+6. reboot
+
+7. verify firewall and selinux are closed
+iptables -L
+sestatus
+
+8. install corosync and pacemaker and crm shell
+yum install -y corosync*
+yum install -y pacemaker*
+
+9. configure corosync
+cd /etc/corosync
+cp corosync.conf.example corosync.conf
+vi corosync.conf // modify bindnetaddr to eth0 IP
+
+10. generate secret key
+corosync-keygen
+cp /etc/corosync/authkey to IX-B
+
+11. update network time
+ntpdate -u ntp.api.bz
+
+12. install crmsh
+first way:	download rpm package from this website:
+	  http://download.opensuse.org/repositories/network:/ha-clustering:/Stable/CentOS_CentOS-6/noarch/
+second way:  cp all rpm package to host and install them
+    rpm -ivh *.rpm	
+	
+13. start services after reboot
+vi /etc/rc.local 
+service corosync start
+sleep 5
+service pacemaker start	
+
+14. configure pacemaker
+
+A: cp FSSofia to /etc/rc.d/init.d
+B: cd /etc/rc.d/init.d
+   chmod +x FSSofia
+C: crm configure edit
+
+node IX-A
+node IX-B
+primitive fs lsb:FSSofia \
+        op monitor interval=1s enabled=true on-fail=standby \
+        meta target-role=Started
+primitive vip IPaddr2 \
+        params ip=192.168.135.199 nic="eth0:0" cidr_netmask=22
+group cluster_services vip fs
+order fs-after-vip Mandatory: vip fs
+property cib-bootstrap-options: \
+        have-watchdog=false \
+        dc-version=1.1.15-5.el6-e174ec8 \
+        cluster-infrastructure="classic openais (with plugin)" \
+        expected-quorum-votes=2 \
+        stonith-enabled=false \
+        no-quorum-policy=ignore
+rsc_defaults rsc-options: \
+        resource-stickiness=100
+
+15. modify ippbx service script
+vi /etc/rc.d/init.d/ippbxd
+
+// get ippbx process id
+progid=`ps -ef|grep 'ippbx'|grep -v 'grep'|awk '{print $2}'`
+
+stop() function
+        #killproc $prog
+        kill -9 $progid 
+        
+16. vi vars.xml
+<X-PRE-PROCESS cmd="set" data="api_on_startup=system service pacemaker restart"/>
+
+17. vi /etc/rc.local
+	/root/check_eth0.sh &
+	
