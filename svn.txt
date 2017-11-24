@@ -1,0 +1,13 @@
+
+1: vi /etc/profile
+		export SVN_EDITOR=vim
+		source /etc/profile
+		
+// create new branch from other branch
+svn copy svn://192.168.134.1/IPPBX-R3/branches/IPPBX_3.0.6 svn://192.168.134.1/IPPBX-R3/branches/IPPBX_3.0.6_multi_video_streams_bert
+
+svn checkout svn://192.168.134.1/IPPBX-R3/branches/IPPBX_3.0.6_multi_video_streams_bert
+
+svn commit -m "stage 1: compile is ok, start to verify the code modification"
+
+		

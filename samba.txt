@@ -17,6 +17,9 @@ Codename:	Final
 
 2: vi /etc/samba/smb.conf        --- set directory /home to share, so we can access it from windows 7
 
+	security = share
+	
+	
         [public]
         comment = Public Stuff
         path = /home
