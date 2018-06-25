@@ -1,3 +1,12 @@
+
+sed -i 's/<param name=\"my-name\" value=\".*\"\/>/<param name=\"my-name\" value=\"cat\"\/>/g' ./internal-eth0.xml
+
+// 取得字符串 </settings> 所在的行号
+grep -n "</settings>" ./internal-eth0.xml | awk -F: '{print $1}'
+
+// 在文件中指定行的前面插入新行 <param name="track-calls" value="true"/>
+sed -i '/<\/settings>/i\"   <param name="track-calls" value="true"/>"' ./internal-eth0.xml
+
 0. modify freeswitch configure
 
   vi ./vars_sip.xml
@@ -65,8 +74,9 @@ iptables -L
 sestatus
 
 8. install corosync and pacemaker and crm shell
-yum install -y corosync*
-yum install -y pacemaker*
+yum --disablerepo=\* --enablerepo=c6-hd  install -y corosync*
+yum --disablerepo=\* --enablerepo=c6-hd  install -y pacemaker*
+
 
 9. configure corosync
 cd /etc/corosync

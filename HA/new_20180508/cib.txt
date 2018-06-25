@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<cib num_updates="1926" dc-uuid="IX-B" update-origin="IX-A" crm_feature_set="3.0.10" validate-with="pacemaker-2.5" update-client="crm_attribute" epoch="31" admin_epoch="0" update-user="root" cib-last-written="Wed Jan 31 15:28:53 2018" have-quorum="0">
+  <configuration>
+    <crm_config>
+      <cluster_property_set id="cib-bootstrap-options">
+        <nvpair id="cib-bootstrap-options-have-watchdog" name="have-watchdog" value="false"/>
+        <nvpair id="cib-bootstrap-options-dc-version" name="dc-version" value="1.1.15-5.el6-e174ec8"/>
+        <nvpair id="cib-bootstrap-options-cluster-infrastructure" name="cluster-infrastructure" value="classic openais (with plugin)"/>
+        <nvpair id="cib-bootstrap-options-expected-quorum-votes" name="expected-quorum-votes" value="2"/>
+        <nvpair name="stonith-enabled" value="false" id="cib-bootstrap-options-stonith-enabled"/>
+        <nvpair name="no-quorum-policy" value="ignore" id="cib-bootstrap-options-no-quorum-policy"/>
+      </cluster_property_set>
+    </crm_config>
+    <nodes>
+      <node id="IX-B" uname="IX-B"/>
+      <node uname="IX-A" id="IX-A">
+        <instance_attributes id="nodes-IX-A">
+          <nvpair id="nodes-IX-A-standby" name="standby" value="off"/>
+        </instance_attributes>
+      </node>
+    </nodes>
+    <resources>
+      <group id="cluster_services">
+        <primitive id="vip" class="ocf" provider="heartbeat" type="IPaddr2">
+          <instance_attributes id="vip-instance_attributes">
+            <nvpair name="ip" value="192.168.135.199" id="vip-instance_attributes-ip"/>
+            <nvpair name="nic" value="eth0:0" id="vip-instance_attributes-nic"/>
+            <nvpair name="cidr_netmask" value="22" id="vip-instance_attributes-cidr_netmask"/>
+          </instance_attributes>
+        </primitive>
+        <primitive id="fs" class="lsb" type="FSSofia">
+          <operations>
+            <op name="monitor" interval="1s" enabled="true" on-fail="standby" id="fs-monitor-1s"/>
+          </operations>
+          <meta_attributes id="fs-meta_attributes">
+            <nvpair name="target-role" value="Started" id="fs-meta_attributes-target-role"/>
+          </meta_attributes>
+        </primitive>
+      </group>
+    </resources>
+    <constraints>
+      <rsc_order id="fs-after-vip" kind="Mandatory" first="vip" then="fs"/>
+    </constraints>
+    <rsc_defaults>
+      <meta_attributes id="rsc-options">
+        <nvpair name="resource-stickiness" value="100" id="rsc-options-resource-stickiness"/>
+      </meta_attributes>
+    </rsc_defaults>
+  </configuration>
+</cib>
+

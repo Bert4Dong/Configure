@@ -1,0 +1,109 @@
+#!/bin/bash
+#
+# Startup script for the Polylink iPBX Server
+#
+# Copyright (c) 2003 Polylink Inc.
+#
+# pccd         Starting and Stopping iPBX service
+# chkconfig: - 85 35
+# description: Polylink iPBX Server
+# processname: ippbx
+
+# Source function library.
+. /etc/init.d/functions
+
+INITLOG_ARGS=""
+PATH_EXE=/Polylink/IPPBX/current/bin
+PATH1_EXE=/Polylink/BIN
+prog=ippbx
+prog1=get_gateway_info
+prog2=ixwatchdog
+prog2id=`ps -ef|grep 'ixWatchdog.py'|grep -v 'grep'|awk '{print $2}'`
+progid=`ps -ef|grep 'ippbx'|grep -v 'grep'|awk '{print $2}'`
+RETVAL=0
+
+JAVA_HOME=/jdk1.6
+CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME PATH CLASSPATH
+export PATH=/Polylink/IPPBX/current/bin:$PATH
+
+start(){
+        /sbin/pidof  ippbx >>/dev/null
+        RETVAL=$?
+        if [ $RETVAL = 0 ]; then
+        echo -n "The Polylink iPBX Already Run:"
+        [ $RETVAL != 0 ] && success || failure
+        echo
+        return 1
+        fi
+        $PATH_EXE/$prog -nonat -nc > /dev/null 2>&1 &	
+				sleep 10
+				$PATH1_EXE/$prog1 > /dev/null 2>&1 &
+				sleep 1
+#				$PATH1_EXE/$prog2 > /dev/null 2>&1 &
+				sleep 1
+        echo -n "Starting Polylink iPBX Program:"
+        RETVAL=$?
+        [ $RETVAL = 0 ] && success || failure
+        echo
+}
+stop() {
+	echo -n $"Stopping Polylink iPBX Server: "
+	kill -9  $prog2id
+        sleep 1
+	killproc $prog1
+	sleep 1
+	#killproc $prog
+        kill -9 $progid
+	RETVAL=$?
+	[ $RETVAL = 0 ] && rm -f /var/lock/subsys/ippbx
+        echo
+}
+
+reload() {
+	echo -n $"Reloading Polylink iPBX Server: "
+	kill -9 $prog2id -HUP
+        sleep 1
+	killproc $prog1 -HUP
+	sleep 1
+	killproc $prog -HUP
+	RETVAL=$?
+	echo
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+        status $prog
+	RETVAL=$?
+	;;
+  restart)
+	stop
+	start
+	;;
+  condrestart)
+	if [ -f /Polylink/IPPBX/current/run/freeswitch.pid ] ; then
+		stop
+		start
+	fi
+	;;
+  reload)
+        reload
+	;;
+  graceful|help|configtest)
+	$apachectl $@
+	RETVAL=$?
+	;;
+  *)
+	echo $"Usage: $prog {start|stop|restart}"
+	exit 1
+esac
+
+exit $RETVAL

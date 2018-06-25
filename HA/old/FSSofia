@@ -1,0 +1,64 @@
+#!/bin/sh
+### -*- mode:shell-script; indent-tabs-mode:nil; sh-basic-offset:2 -*-
+### BEGIN INIT INFO
+# Provides: FSSofia
+# Required-Start: $network $remote_fs $local_fs
+# Required-Stop: $network $remote_fs $local_fs
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: FSSofia
+# Description: FSSofia Status
+### END INIT INFO
+#set -x
+
+FS_CLI_PROG='/Polylink/IPPBX/current/bin/pbx_cli'
+FS_CLI_HOST='127.0.0.1'
+FS_CLI_PORT='31208'
+FS_CLI_PASS='p603?25_9cf1-409f-bcba-259fb68777d5'
+PROFILES='internal-eth0'
+
+usage() {
+	echo "Usage: $0 profile1[,profile2[,etc]] {start|stop|status}"
+	exit 1
+}
+
+fs_cli() {
+	$FS_CLI_PROG -H $FS_CLI_HOST -P $FS_CLI_PORT -p $FS_CLI_PASS -x "$1"
+}
+
+sofia_profile_started() {
+	fs_cli "sofia xmlstatus" | grep "<name>$1</name>" | wc -l
+}
+
+if [ $# != 1 ]; then
+	usage
+fi
+
+
+#PROFILES=`echo $1 | tr ',' ' '`
+CMD=$1
+#was $2
+
+case "$CMD" in
+	'start')
+	fs_cli "sofia recover"
+	exit 0
+	;;
+	'stop')
+	exit 0
+	;;
+	'status')
+	for p in $PROFILES; do
+		if [ `sofia_profile_started "$p"` -eq 0 ]; then
+			echo "$p DOWN"
+			exit 3
+		fi
+	done
+	echo "OK"
+	exit 0
+	;;
+	*)
+	usage
+	;;
+esac
+

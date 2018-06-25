@@ -1,0 +1,14 @@
+
+1：需要用户设置的参数
+
+	Floating ip
+#	主机 IP ，掩码，网关，DNS
+	主机名
+	Hosts 文件
+
+	Pacemaker 设置
+		crm configure edit
+
+2：web 后台配置参数
+
+	参考 setup.sh
