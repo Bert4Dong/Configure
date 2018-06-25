@@ -38,13 +38,14 @@ if not b_exeflag then
 end
 
 result = sql:fetch()
-if result ==nil then
-   LogWarn("bridge_bypass_judge.lua:: No found user_agent for " .. callerId)
-   sql:close()
-   return 1
-end
 
-local caller_user_agent = result.user_agent
+local caller_user_agent
+
+if result ==nil then
+	caller_user_agent = ""
+elseif
+ caller_user_agent = result.user_agent
+end
 
 
 local callee_query = string.format("select user_agent from sip_registrations where sip_user = '%s'", calleeId)
@@ -64,6 +65,8 @@ if result ==nil then
 end
 
 local callee_user_agent = result.user_agent
+
+sql:close()
 
 LogInfo(curFileTag .. "caller_user_agent = " .. caller_user_agent .. " callee_user_agent = " .. callee_user_agent)
 

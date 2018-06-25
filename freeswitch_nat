@@ -1,0 +1,37 @@
+终端在 NAT 后面：
+
+// freeswitch 解决 NAT 穿越问题
+	1： 通用配置
+		// 用于判断终端是否位于 NAT 后面
+		<param name="apply-nat-acl" value="nat.auto"/>
+	
+		// 调整 RTP 地址端口， 用于 RTP 流穿越
+		<param name="disable-rtp-auto-adjust" value="false"/>
+	
+		// 如果终端支持 rport
+		<param name="NDLB-force-rport" value="true"/>
+		// 如果终端不支持 rport，freeswitch 修改终端的 IP:PORT
+		<variablename="sip-force-contact"value="NDLB-connectile-dysfunction"/>
+		
+	2： 保活
+		// freeswitch 发送 keepalive 消息
+		<param name="nat-options-ping" value="true"/>
+		<param name="ping-mean-interval" value="30"/>
+		
+		// 终端发送 keepalive 消息
+		视终端配置而定
+	
+	
+	
+// 终端解决 NAT 穿越问题
+	Configuration / STUN / ICE，根据话机手册具体配置
+	
+	
+	
+// 目前 IX 实现方式
+参见以前的文档 《Sip 注册超时问题分析》
+
+
+	
+	
+		
