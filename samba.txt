@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 // centos 6.9
 [root@IX-B home]# lsb_release  -a
@@ -38,4 +39,46 @@ Codename:	Final
 
 
 4:
+=======
+
+// centos 6.9
+[root@IX-B home]# lsb_release  -a
+LSB Version:	:base-4.0-amd64:base-4.0-noarch:core-4.0-amd64:core-4.0-noarch:graphics-4.0-amd64:graphics-4.0-noarch:printing-4.0-amd64:printing-4.0-noarch
+Distributor ID:	CentOS
+Description:	CentOS release 6.9 (Final)
+Release:	6.9
+Codename:	Final
+
+1: yum install samba
+
+  [root@IX-B ~]# rpm -qa | grep samba
+  samba-common-3.6.23-45.el6_9.x86_64
+  samba-winbind-clients-3.6.23-45.el6_9.x86_64
+  samba-3.6.23-45.el6_9.x86_64
+  samba-winbind-3.6.23-45.el6_9.x86_64
+
+2: vi /etc/samba/smb.conf        --- set directory /home to share, so we can access it from windows 7
+
+	security = share
+	
+	
+        [public]
+        comment = Public Stuff
+        path = /home
+        public = yes
+        writable = yes
+        printable = no
+        write list = +staff
+
+
+
+3:   
+  chkconfig --level 35 nmb on
+  chkconfig --level 35 smb on
+  service nmb restart
+  service smb restart
+
+
+4:
+>>>>>>> dd4f8d6902dbce573faedbf7ea90d33bc58c33f4
   set network map on win7, so we can use the share directory on win7.

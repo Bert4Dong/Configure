@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 
 // constructure SDP
@@ -120,4 +121,128 @@ static void our_sofia_event_callback(nua_event_t event,
 								
 								                                                               						  
                                                                						  
+=======
+
+
+// constructure SDP
+file:     torture_sdp.c
+function: static int test_build(void)     
+
+
+switch_core_media.c
+SWITCH_DECLARE(void)switch_core_media_set_local_sdp(switch_core_session_t *session, const char *sdp_str, switch_bool_t dup)
+
+SWITCH_DECLARE(void) switch_core_media_gen_local_sdp(switch_core_session_t *session, switch_sdp_type_t sdp_type, const char *ip, switch_port_t port, const char *sr, int force)     
+
+SWITCH_DECLARE(switch_status_t) switch_core_media_activate_rtp(switch_core_session_t *session)
+
+
+													 
+// ===================================================== create b leg, when APP (bridge) is called ================================================================================
+SWITCH_STANDARD_APP(audio_bridge_function)
+												||
+												||
+												\/
+SWITCH_DECLARE(switch_status_t) switch_ivr_originate(switch_core_session_t *session,
+													 switch_core_session_t **bleg,
+													 switch_call_cause_t *cause,
+													 const char *bridgeto,
+													 uint32_t timelimit_sec,
+													 const switch_state_handler_table_t *table,
+													 const char *cid_name_override,
+													 const char *cid_num_override,
+													 switch_caller_profile_t *caller_profile_override,
+													 switch_event_t *ovars, switch_originate_flag_t flags, switch_call_cause_t *cancel_cause)
+													                       ||
+													                       ||
+													                       \/
+switch_core_session.c
+SWITCH_DECLARE(switch_call_cause_t) switch_core_session_outgoing_channel(switch_core_session_t *session, switch_event_t *var_event,
+																		 const char *endpoint_name,
+																		 switch_caller_profile_t *caller_profile,
+																		 switch_core_session_t **new_session,
+																		 switch_memory_pool_t **pool,
+																		 switch_originate_flag_t flags, switch_call_cause_t *cancel_cause)
+                                                 ||
+                                                 ||
+                                                 \/
+mod_sofia.c
+static switch_call_cause_t sofia_outgoing_channel(switch_core_session_t *session, switch_event_t *var_event,
+												  switch_caller_profile_t *outbound_profile, switch_core_session_t **new_session,
+												  switch_memory_pool_t **pool, switch_originate_flag_t flags, switch_call_cause_t *cancel_cause)
+
+
+
+// ============================== load profile parameters and load profile thread to listen port, for example 5060 / 5080 ==============================================
+sofia.c
+switch_status_t config_sofia(sofia_config_t reload, char *profile_name)  
+											||
+											||
+											\/
+void launch_sofia_profile_thread(sofia_profile_t *profile)
+											||
+											||
+											\/
+void *SWITCH_THREAD_FUNC sofia_profile_thread_run(switch_thread_t *thread, void *obj)
+													//                                              \\
+												//                                                 \\
+											 \/                                                   \/
+											 init database and tables                              callback function when tport receive sip message
+int sofia_glue_init_sql(sofia_profile_t *profile)              void sofia_event_callback(nua_event_t event,                                                                          
+                                                               						  int status,                                                                                              
+                                                               						  char const *phrase,                                                                                      
+                                                               						  nua_t *nua, sofia_profile_t *profile, nua_handle_t *nh, sofia_private_t *sofia_private, sip_t const *sip,
+                                                               						  tagi_t tags[]) 
+                                                               						      ||
+                                                              									||
+                                                              									\/   create a leg
+                                                              switch_core_session_request_uuid (......) 			
+                                                              									||
+                                                              									||
+                                                              									\/   push message to queue
+                                                              sofia_queue_message(de);			  
+                                                              									||
+                                                              									||
+                                                              									\/	dispatch event
+                                                              void sofia_process_dispatch_event(sofia_dispatch_event_t **dep)
+                                                              									||
+                                                              									||
+                                                              									\/
+                                                              static void our_sofia_event_callback(nua_event_t event,                                                                
+                                                              						  int status,                                                                                              
+                                                              						  char const *phrase,                                                                                      
+                                                              						  nua_t *nua, sofia_profile_t *profile, nua_handle_t *nh, sofia_private_t *sofia_private, sip_t const *sip,
+                                                              								sofia_dispatch_event_t *de, tagi_t tags[])                                                             
+                                                              									||
+                                                              									||
+                                                              									\/
+                                                              void sofia_handle_sip_i_invite(switch_core_session_t *session, nua_t *nua, sofia_profile_t *profile, nua_handle_t *nh, sofia_private_t *sofia_private, sip_t const *sip, sofia_dispatch_event_t *de, tagi_t tags[])
+
+                                                               						  
+
+
+// launch thread when mod_sofia load, it will process message queue
+void sofia_msg_thread_start(int idx)
+								||
+								||
+								\/
+void *SWITCH_THREAD_FUNC sofia_msg_thread_run(switch_thread_t *thread, void *obj)
+								||
+								||
+								\/
+void sofia_process_dispatch_event(sofia_dispatch_event_t **dep)
+								||
+								||
+								\/
+static void our_sofia_event_callback(nua_event_t event,
+						  int status,
+						  char const *phrase,
+						  nua_t *nua, sofia_profile_t *profile, nua_handle_t *nh, sofia_private_t *sofia_private, sip_t const *sip,
+								sofia_dispatch_event_t *de, tagi_t tags[])
+								
+								
+								
+								                                                               						  
+                                                               						  
+>>>>>>> dd4f8d6902dbce573faedbf7ea90d33bc58c33f4
                                                                						                                                                                            

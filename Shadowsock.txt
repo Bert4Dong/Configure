@@ -1,2 +1,6 @@
+<<<<<<< HEAD
 jp-1.v2speed.net
+=======
+jp-1.v2speed.net
+>>>>>>> dd4f8d6902dbce573faedbf7ea90d33bc58c33f4
 【ss连接端口：56980】 【ss连接密码：cspMquW63r】 【ss加密方式：rc4-md5】

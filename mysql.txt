@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 // IX always show "mysql server has gone away" after IX has been upgraded to v1.6 branch
 1: vi /etc/my.conf
@@ -97,3 +98,104 @@ mysql> show create table recovery;
 mysql> show procedure status;
 mysql> show create procedure proc_name;
 mysql> show create function func_name;
+=======
+
+// IX always show "mysql server has gone away" after IX has been upgraded to v1.6 branch
+1: vi /etc/my.conf
+   wait-timeout = 28800
+   interactive_timeout = 28800
+         
+2: service mysqld restart
+
+3: service ippbxd stop
+   service ippbxd start
+
+
+// connect to database pbxdb3
+mysql -D pbxdb3
+
+// show global/session variables name
+mysql> show global variables like '%timeout%';
++----------------------------+----------+
+| Variable_name              | Value    |
++----------------------------+----------+
+| connect_timeout            | 10       |
+| delayed_insert_timeout     | 300      |
+| innodb_lock_wait_timeout   | 50       |
+| innodb_rollback_on_timeout | OFF      |
+| interactive_timeout        | 28800    |
+| lock_wait_timeout          | 31536000 |
+| net_read_timeout           | 30       |
+| net_write_timeout          | 60       |
+| slave_net_timeout          | 3600     |
+| wait_timeout               | 28800    |
++----------------------------+----------+
+10 rows in set (0.00 sec)
+
+mysql> show session variables like '%timeout%';
++----------------------------+----------+
+| Variable_name              | Value    |
++----------------------------+----------+
+| connect_timeout            | 10       |
+| delayed_insert_timeout     | 300      |
+| innodb_lock_wait_timeout   | 50       |
+| innodb_rollback_on_timeout | OFF      |
+| interactive_timeout        | 28800    |
+| lock_wait_timeout          | 31536000 |
+| net_read_timeout           | 30       |
+| net_write_timeout          | 60       |
+| slave_net_timeout          | 3600     |
+| wait_timeout               | 28800    |
++----------------------------+----------+
+10 rows in set (0.00 sec)
+
+// show table structure
+mysql> desc recovery;
++--------------+--------------+------+-----+---------+-------+
+| Field        | Type         | Null | Key | Default | Extra |
++--------------+--------------+------+-----+---------+-------+
+| runtime_uuid | varchar(255) | YES  |     | NULL    |       |
+| technology   | varchar(255) | YES  | MUL | NULL    |       |
+| profile_name | varchar(255) | YES  | MUL | NULL    |       |
+| hostname     | varchar(255) | YES  |     | NULL    |       |
+| uuid         | varchar(255) | YES  | MUL | NULL    |       |
+| metadata     | text         | YES  |     | NULL    |       |
++--------------+--------------+------+-----+---------+-------+
+6 rows in set (0.08 sec)
+
+mysql> show columns from recovery;
++--------------+--------------+------+-----+---------+-------+
+| Field        | Type         | Null | Key | Default | Extra |
++--------------+--------------+------+-----+---------+-------+
+| runtime_uuid | varchar(255) | YES  |     | NULL    |       |
+| technology   | varchar(255) | YES  | MUL | NULL    |       |
+| profile_name | varchar(255) | YES  | MUL | NULL    |       |
+| hostname     | varchar(255) | YES  |     | NULL    |       |
+| uuid         | varchar(255) | YES  | MUL | NULL    |       |
+| metadata     | text         | YES  |     | NULL    |       |
++--------------+--------------+------+-----+---------+-------+
+6 rows in set (0.01 sec)
+
+mysql> show create table recovery;
++----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table    | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
++----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| recovery | CREATE TABLE `recovery` (
+  `runtime_uuid` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `technology` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `profile_name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `hostname` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `uuid` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `metadata` text COLLATE utf8_bin,
+  KEY `recovery1` (`technology`),
+  KEY `recovery2` (`profile_name`),
+  KEY `recovery3` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin |
++----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.09 sec)
+
+// show procedure
+mysql> show procedure status;
+mysql> show create procedure proc_name;
+mysql> show create function func_name;
+>>>>>>> dd4f8d6902dbce573faedbf7ea90d33bc58c33f4
