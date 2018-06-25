@@ -1,0 +1,53 @@
+
+===================================================================================================================================================
+http://192.17.1.12:8060/changelog/~author=spring.he/IX3/branches/IPPBX_3.0.1/IPPBX_SRC/ix_src3.0
+你可以访问这个地址，用户名bert，密码polylink
+
+SVN上对于多流的版本修改主要在9519、9551、9623、9645、9668、9680、10025、10068、10346、10370、10376（不确定，单纯从描述上不易判定）、10668、10852
+
+====================================================================================================================================================
+
+service  ippbxd start
+
+http://192.168.135.184:8080/ipbx
+http://192.168.135.184:8080/cti
+admin/admin
+
+//don't use crm
+cd /PolylinkCTI/WEB/current/WEB-INF/classes
+vi init.properties
+USE_CRM=0 // don't use crm
+service tomcatd restart
+
+mysql -D pbxdb3
+
+
+// compile ctiserver
+1. install dependence
+	yum install libuuid-devel
+	yum install librabbitmq-devel
+	yum install xerces-c-devel
+	yum install pcre-devel
+2. make
+
+
+// ============================================= freeswitch HA ===========================================
+
+	cat ./HA/freeswitc HA
+	
+//===================================== Mysql will always be re-established after IX upgrade to 1.6 branch =============================
+
+	cat mysql.txt
+
+
+// rtp auto adjust when sip ua is behind NAT device
+disable-rtp-auto-adjust = true/false
+
+
+
+
+[root@localhost current]# pbx_cli -x "sofia_contact 1010"
+sofia/internal-eth0/sip:1010@192.168.128.198:5060;fs_nat=yes,sofia/internal-eth0/sip:1010@192.168.128.197:5060;transport=UDP;fs_nat=yes
+
+<action application="bridge" data="sofia/internal-eth0/sip:1010@192.168.128.198:5060;fs_nat=yes"/>
+

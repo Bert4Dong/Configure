@@ -1,0 +1,13 @@
+
+
+Don't send Remote-Party-ID / P-*-Identity
+
+internal.xml
+<param name="caller-id-type" value="none"/>
+
+or
+
+// channel variable
+sip_cid_type=none
+
+

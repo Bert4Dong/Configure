@@ -1,0 +1,132 @@
+
+========================================================= 数据库修改 ========================================================================================
+drop table if exists pbxdb_wetalk;
+CREATE TABLE pbxdb_wetalk(
+    id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    sip_user varchar(255),
+    call_id varchar(255),
+    contact varchar(1024),
+    voipToken varchar(255),
+    deviceToken varchar(255),
+    appType varchar(128),
+    deviceType varchar(128),
+    profile_name varchar(255)
+);
+
+
+
+
+
+DELIMITER ||
+drop trigger if exists t_after_on_reg;
+CREATE TRIGGER t_after_on_reg 
+AFTER INSERT ON sip_registrations
+FOR EACH ROW
+BEGIN
+     declare count int default 0;
+     declare token int default 0;
+     declare pos   int default 0;
+     declare temp        varchar(1024);
+     declare apptype     varchar(1024) default "";
+     declare deviceType  varchar(1024) default "";
+     declare voipToken   varchar(1024) default "";
+     declare deviceToken varchar(1024) default "";
+          
+     set @count = (select count(*) from pbxdb_wetalk where sip_user=new.sip_user);
+     set @token = (select instr(lower(new.contact), lower("voipToken")));
+
+     if (@token>0) then
+         if (@count>0) then
+             delete from pbxdb_wetalk where sip_user=new.sip_user;
+         end if;
+        
+         set @pos  = (select instr(lower(new.contact), lower("apptype")));
+         
+         if (@pos>0) then
+             set @temp = (select substring(new.contact, @pos+8));
+             set @apptype = (select SUBSTRING_INDEX(@temp,";",1));
+         end if;
+     
+         set @pos  = (select instr(lower(new.contact), lower("deviceType")));
+         
+         if (@pos>0) then
+             set @temp = (select substring(new.contact, @pos+11));
+             set @deviceType = (select SUBSTRING_INDEX(@temp,";",1));
+         end if;
+     
+         set @pos = (select instr(lower(new.contact), lower("voipToken")));
+         
+         if (@pos>0) then
+             set @temp = (select substring(new.contact, @pos+10));
+             set @voipToken = (select SUBSTRING_INDEX(@temp,";",1));
+         end if;
+
+         set @pos = (select instr(lower(new.contact), lower("deviceToken")));
+         
+         if (@pos>0) then
+             set @temp = (select substring(new.contact, @pos+12));
+             set @deviceToken = (select SUBSTRING_INDEX(@temp,";",1));
+         end if;
+     
+         insert into pbxdb_wetalk(sip_user, contact, call_id, apptype, deviceType, voipToken, deviceToken, profile_name) values(new.sip_user, new.contact, new.call_id, @apptype, @deviceType, @voipToken, @deviceToken, new.profile_name);
+     end if;
+END 
+||
+DELIMITER ;
+
+
+DELIMITER ||
+drop trigger if exists t_before_on_unreg;
+CREATE TRIGGER t_before_on_unreg 
+BEFORE DELETE ON sip_registrations
+FOR EACH ROW
+BEGIN
+     declare temp varchar(1024);
+     declare cmd_type varchar(1024);
+     
+     set @temp = (select substring(old.contact, instr(lower(old.contact), lower("cmd"))+4));
+     set @cmd_type = (select SUBSTRING_INDEX(@temp,";",1));
+     
+     if(@cmd_type = 'logout') then
+         delete from pbxdb_wetalk where sip_user=old.sip_user;
+     end if;
+END 
+||
+DELIMITER ;
+
+
+
+================================================= 新增 lua 脚本 =============================================================================
+
+server IP: 192.168.135.238
+
+directory: /Polylink/IPPBX/current/scripts/lua_scripts/scripts
+
+files: bridge.lua    wetalk_wakeup.lua
+
+
+
+
+
+================================================= 配置文件修改 ==============================================================================
+
+dialplan/default/000_global.xml
+		<action application="bridge" data="{ignore_early_media=true}user/${dialed_extension}@${domain_name}"/>
+																		||
+																		||
+																		\/
+		<action application="lua" data="lua_scripts/scripts/bridge.lua"/>
+
+dialplan/public.xml
+    <extension name="public_polylink">
+      <condition field="destination_number" expression="^polylink_wetalk_(\+.*|\*.*|\d.*)$">
+        <action application="lua" data="lua_scripts/scripts/wetalk_wakeup.lua ${caller_id_number} $1"/>
+      </condition>
+    </extension>
+
+
+
+
+
+
+
